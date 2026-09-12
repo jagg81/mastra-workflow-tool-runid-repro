@@ -1,0 +1,16 @@
+{
+  "name": "mastra-workflow-tool-runid-repro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal repro: the auto workflow-<key> tool trusts a model-supplied suspendedToolRunId as the run id; a literal \"null\" collapses independent runs.",
+  "scripts": {
+    "repro": "node repro.mjs"
+  },
+  "dependencies": {
+    "@mastra/core": "1.64.0",
+    "@mastra/libsql": "1.22.3",
+    "ai": "7.0.41",
+    "zod": "3.25.76"
+  }
+}
