@@ -44,6 +44,38 @@ PART 2 — BUG (shared 'null'): same run instance? true  | completed: ["B"]
 ✅ REPRODUCED.
 ```
 
+## Agent-delegation variant (`npm run repro:agent`)
+
+The same defect — an unsanitised model-supplied `suspendedToolRunId` on a
+resumable tool — also affects the **agent-delegation** resume path
+(`supervisor → agent-<name> → approval-gated tool`), via a different mechanism
+and a different symptom. `suspendedToolRunId` is spliced into **every** resumable
+tool's schema (`isResumableTool = toolName?.startsWith("agent-") ||
+toolName?.startsWith("workflow-")`), not just workflow tools.
+
+On the agent path the model's truthy `"null"` does not get _adopted_ — it
+_blocks_ the framework's back-fill of the real sub-agent run id
+(`delegatedRunId`), because the back-fill is guarded by
+`!cleanedArgs.suspendedToolRunId`. The sub-agent is then resumed with
+`runId: "null"`, misrouting to a non-existent run: nothing is written and the
+delegation's `toModelOutput` crashes on the empty result
+(`Cannot read properties of undefined (reading 'text')`).
+
+`repro-agent-delegation.mjs` drives a durable supervisor → `agent-bookingAgent`
+→ an approval-gated `reserve` tool, with a scripted mock model. BUG and CONTROL
+differ only in the model-supplied `suspendedToolRunId`:
+
+```
+BUG     (model authored suspendedToolRunId:'null'):
+  sub-agent RESUME runIds: ["null"]   | bookings written: []   -> toModelOutput crash
+CONTROL (field omitted):
+  sub-agent RESUME runIds: ["<real delegatedRunId>"] (back-filled) | bookings written: ["booking-Ada"]
+✅ REPRODUCED.
+```
+
+See `REPORT-agent-delegation.md` for the full source trace (line-cited against
+`@mastra/core@1.64.0`), the workflow-vs-agent diff, and fix options.
+
 ## Relation to existing issues
 
 - **Closest prior art: #20322 / #20347.** #20322 (concurrent workflow-as-tool approvals resume the

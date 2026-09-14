@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Minimal repro: the auto workflow-<key> tool trusts a model-supplied suspendedToolRunId as the run id; a literal \"null\" collapses independent runs.",
   "scripts": {
-    "repro": "node repro.mjs"
+    "repro": "node repro.mjs",
+    "repro:agent": "node repro-agent-delegation.mjs"
   },
   "dependencies": {
     "@mastra/core": "1.64.0",
